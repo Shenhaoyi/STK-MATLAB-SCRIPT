@@ -59,9 +59,11 @@ initstate.Element.Inclination = 50;
 
 %% 初始轨道外推段
 propagate = MCS.Insert('eVASegmentTypePropagate','Propagate','-');%三个参数分别是：模块类型、自定义的模块名称、后一个模块的名称（在该模块前插入新的模块）
+propagate.InitialState.SetElementType('eVAElementTypeKeplerian');
+propagate.FinalState.SetElementType('eVAElementTypeKeplerian');
 propagate.PropagatorName = 'Earth Point Mass';
 propagate.Properties.Color = uint32(hex2dec('00ff00'));
-propagate.StoppingConditions.Item('Duration').Properties.Trip = 3600;
+propagate.StoppingConditions.Item('Duration').Properties.Trip = propagate.InitialState.Element.Period;% 外推时间等于轨道周期
 
 
 %% 修改成只运行更新段
@@ -86,7 +88,7 @@ while count <= max
     maneuver.ThrustEfficiencyMode = 'eVAThrustTypeAffectsAccelAndMassFlow';%设置质量变化
     maneuver.SetAttitudeControlType('eVAAttitudeControlThrustVector');%姿态控制设置
     maneuver.AttitudeControl.ThrustAxesName = 'Satellite LVLH'; %推力所在的坐标系设置
-    maneuver.AttitudeControl.ThrustVector.AssignXYZ(0,1,0);
+    maneuver.AttitudeControl.ThrustVector.AssignXYZ(1,1,1);
     maneuver.Propagator.StoppingConditions.Item('Duration').Properties.Trip = 3600*24;
     satellite.Propagator.RunMCS;
     % 获取该段推进之后的轨道根数
@@ -110,9 +112,11 @@ end
 
 %% 目标轨道外推段
 propagate2 = MCS.Insert('eVASegmentTypePropagate','Propagate2','-');
+propagate2.InitialState.SetElementType('eVAElementTypeKeplerian');
+propagate2.FinalState.SetElementType('eVAElementTypeKeplerian');
 propagate2.PropagatorName = 'Earth Point Mass';
 propagate2.Properties.Color = uint32(hex2dec('00ff00'));
-propagate2.StoppingConditions.Item('Duration').Properties.Trip = 3600;
+propagate2.StoppingConditions.Item('Duration').Properties.Trip = propagate2.InitialState.Element.Period;
 
 %% 运行
 satellite.Propagator.RunMCS;
